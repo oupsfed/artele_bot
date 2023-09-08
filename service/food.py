@@ -3,6 +3,7 @@ import os
 
 from aiogram.types import URLInputFile
 from aiogram.utils.keyboard import InlineKeyboardBuilder
+
 from core.actions import food_action
 from core.builders import back_builder, paginate_builder
 from core.factories import FoodCallbackFactory
