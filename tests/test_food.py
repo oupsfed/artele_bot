@@ -271,10 +271,11 @@ async def test_add_food_builder():
 
 @pytest.mark.asyncio
 async def test_download_encode_image():
-    base_dir = Path(__file__).resolve().parent.parent.parent
-    main_image = f'{base_dir}/tests/fixtures/test_image.png'
-    tmp_image = f'{base_dir}/tests//fixtures/tmp.png'
-    shutil.copy2(main_image, tmp_image)
+    img_path = 'tests/fixtures/test_image.png'
+    if not os.path.isfile(img_path):
+        return
+    tmp_image = 'tests/fixtures/tmp.png'
+    shutil.copy2(img_path, tmp_image)
     encode_data = await encode_image(tmp_image)
     assert isinstance(encode_data, str), (
         'Функция должна возвращать кодированную строку'
@@ -283,7 +284,7 @@ async def test_download_encode_image():
         'После выполнения функции изображение должно удалиться '
         'с сервера'
     )
-    with open(main_image, "rb") as img_file:
+    with open(img_path, "rb") as img_file:
         assert encode_data == base64.b64encode(
             img_file.read()).decode('utf-8'), (
             'Изображение неправильно кодируется в base64'
