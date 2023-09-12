@@ -1,2 +1,0 @@
-2023-08-23 14:52:51,967, ERROR, Failed to fetch updates - TelegramConflictError: Telegram server says Conflict: terminated by other getUpdates request; make sure that only one bot instance is running, aiogram.dispatcher
-2023-08-23 14:52:57,138, ERROR, Failed to fetch updates - TelegramConflictError: Telegram server says Conflict: terminated by other getUpdates request; make sure that only one bot instance is running, aiogram.dispatcher

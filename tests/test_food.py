@@ -1,16 +1,14 @@
-import asyncio
 import base64
 import os
 import shutil
-from pathlib import Path
 
 import pytest
 from aiogram.types import URLInputFile
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
-from core.actions import food_action
-from service.food import (FOOD_COL, add_food_builder, admin_edit_food_builder,
-                          encode_image, food_builder, food_info, menu_builder)
+from app.core.actions import food_action
+from app.service.food import (FOOD_COL, add_food_builder, admin_edit_food_builder,
+                              encode_image, food_builder, food_info, menu_builder)
 
 from .fixtures.food import CART_DATA, FOOD_DATA
 from .utils import check_paginator
@@ -271,9 +269,8 @@ async def test_add_food_builder():
 
 @pytest.mark.asyncio
 async def test_download_encode_image():
-    base_dir = Path(__file__).resolve().parent.parent.parent
-    main_image = f'{base_dir}/tests/fixtures/test_image.png'
-    tmp_image = f'{base_dir}/tests//fixtures/tmp.png'
+    main_image = 'tests/fixtures/test_image.png'
+    tmp_image = 'tests/fixtures/tmp.png'
     shutil.copy2(main_image, tmp_image)
     encode_data = await encode_image(tmp_image)
     assert isinstance(encode_data, str), (
