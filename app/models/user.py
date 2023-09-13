@@ -1,6 +1,6 @@
 from enum import Enum
 
-from sqlalchemy import Column, BigInteger, String, Integer
+from sqlalchemy import Column, BigInteger, String
 from sqlalchemy_utils import ChoiceType
 
 from app.core.db import Base

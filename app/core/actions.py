@@ -18,7 +18,7 @@ class Action:
         return self.callback
 
 
-class FoodAction(Action):
+class ItemAction(Action):
     add_to_cart = 'add_t_c'
     remove_from_cart = 'remove_f_c'
     create_preview = 'c_preview'
@@ -39,7 +39,7 @@ class CartAction(Action):
     pass
 
 
-food_action = FoodAction('food')
+item_action = ItemAction('item')
 order_action = OrderAction('order')
 cart_action = CartAction('cart')
 

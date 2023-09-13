@@ -15,7 +15,7 @@ class ArteleCallbackData(CallbackData, prefix='artele'):
     page: int = 1
 
 
-class FoodCallbackFactory(ArteleCallbackData, prefix='food'):
+class ItemCallbackFactory(ArteleCallbackData, prefix='item'):
     """
     Callback товаров который содержит дополнительные поля:
      column: Optional[str] - поле товара

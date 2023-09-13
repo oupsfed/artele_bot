@@ -3,10 +3,9 @@ import os
 
 from aiogram.types import URLInputFile
 from aiogram.utils.keyboard import InlineKeyboardBuilder
-
-from app.core.actions import food_action
-from app.core.builders import back_builder, paginate_builder
-from app.core.factories import FoodCallbackFactory
+from core.actions import food_action
+from core.builders import back_builder, paginate_builder
+from core.factories import FoodCallbackFactory
 
 FOOD_COL = {
     'name': 'название',
@@ -17,9 +16,9 @@ FOOD_COL = {
 }
 
 
-async def menu_builder(json_response: dict,
-                       pagination: bool = True,
-                       admin: bool = False) -> InlineKeyboardBuilder:
+async def item_list_builder(item_data: dict,
+                            offset: int = 0,
+                            admin: bool = False) -> InlineKeyboardBuilder:
     """
     Функция формирования кнопок для меню товаров.
 
@@ -31,20 +30,16 @@ async def menu_builder(json_response: dict,
             Returns:
                     builder (InlineKeyboardBuilder): объект кнопок
     """
-    food_list = json_response
-    page = 1
-    if pagination:
-        food_list = json_response['results']
-        page = json_response['page']
     builder = InlineKeyboardBuilder()
     rows = []
-    for food in food_list:
+    for item in item_data:
+        btn_text = f"{item['name']} - {item['price']} ₽"
         builder.button(
-            text=f"{food['name']} - {food['price']} ₽",
+            text=btn_text,
             callback_data=FoodCallbackFactory(
                 action=food_action.get,
                 page=page,
-                id=food['id'])
+                id=item['id'])
         )
         rows.append(1)
     page_buttons, builder = await paginate_builder(

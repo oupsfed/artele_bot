@@ -2,36 +2,40 @@ from typing import Any, Awaitable, Callable, Dict
 
 from aiogram import BaseMiddleware
 from aiogram.types import CallbackQuery, Message
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.utils import get_api_answer
+from app.crud.user import user_crud
+from app.models.user import Role
 
 
-def is_admin(user_id) -> bool:
+def is_admin(user_id,
+             session: AsyncSession) -> bool:
     """
     Валидатор проверки прав администратора
 
             Parameters:
                     user_id (int) : telegram-chat-id пользователя
+                    session (AsyncSession) : объект сессии
 
             Returns:
                     answer (bool): Возвращает True, False
     """
-    answer = get_api_answer(f'users/{user_id}')
-    return answer.json()['role'] == 'admin'
+    return user_crud.get_user_role(user_id, session) == Role.admin
 
 
-def is_guest(user_id) -> bool:
+def is_guest(user_id,
+             session: AsyncSession) -> bool:
     """
     Валидатор проверки прав гостя
 
             Parameters:
                     user_id (int) : telegram-chat-id пользователя
+                    session (AsyncSession) : объект сессии
 
             Returns:
                     answer (bool): Возвращает True, False
     """
-    answer = get_api_answer(f'users/{user_id}')
-    return answer.json()['role'] == 'guest'
+    return user_crud.get_user_role(user_id, session) == Role.guest
 
 
 class IsAdminMessageMiddleware(BaseMiddleware):

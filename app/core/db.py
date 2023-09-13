@@ -2,15 +2,12 @@ import os
 
 from dotenv import load_dotenv
 from sqlalchemy import Column, Integer
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
-from sqlalchemy.orm import declarative_base, declared_attr, sessionmaker
-
+from sqlalchemy.orm import declarative_base, declared_attr
 
 load_dotenv()
 
 Base = declarative_base()
 DB_URL = os.getenv('DB_URL')
-
 
 
 class PreBase:
@@ -23,5 +20,3 @@ class PreBase:
 
 
 Base = declarative_base(cls=PreBase)
-engine = create_async_engine(DB_URL)
-AsyncSessionLocal = sessionmaker(engine, class_=AsyncSession)
