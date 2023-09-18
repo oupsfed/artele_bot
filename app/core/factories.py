@@ -29,7 +29,7 @@ class CartCallbackFactory(ArteleCallbackData, prefix='cart'):
      food_id: Optional[int] - id товара
      user_id: Optional[int] - telegram_chat_id пользователя
     """
-    food_id: Optional[int]
+    item_id: Optional[int]
     user_id: Optional[int]
 
 

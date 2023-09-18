@@ -8,8 +8,8 @@ from app.crud.user import user_crud
 from app.models.user import Role
 
 
-def is_admin(user_id,
-             session: AsyncSession) -> bool:
+async def is_admin(user_id,
+                   session: AsyncSession) -> bool:
     """
     Валидатор проверки прав администратора
 
@@ -20,11 +20,11 @@ def is_admin(user_id,
             Returns:
                     answer (bool): Возвращает True, False
     """
-    return user_crud.get_user_role(user_id, session) == Role.admin
+    return await user_crud.get_user_role(user_id, session) == Role.admin
 
 
-def is_guest(user_id,
-             session: AsyncSession) -> bool:
+async def is_guest(user_id,
+                   session: AsyncSession) -> bool:
     """
     Валидатор проверки прав гостя
 
@@ -35,7 +35,7 @@ def is_guest(user_id,
             Returns:
                     answer (bool): Возвращает True, False
     """
-    return user_crud.get_user_role(user_id, session) == Role.guest
+    return await user_crud.get_user_role(user_id, session) == Role.guest
 
 
 class IsAdminMessageMiddleware(BaseMiddleware):
@@ -43,9 +43,10 @@ class IsAdminMessageMiddleware(BaseMiddleware):
             self,
             handler: Callable[[Message, Dict[str, Any]], Awaitable[Any]],
             event: Message,
-            data: Dict[str, Any]
+            data: Dict[str, Any],
     ) -> Any:
-        if is_admin(event.chat.id):
+        if await is_admin(event.chat.id,
+                          data['session']):
             return await handler(event, data)
         await event.answer(
             "Доступ только для администратора",
@@ -61,7 +62,8 @@ class IsAdminCallbackMiddleware(BaseMiddleware):
             event: CallbackQuery,
             data: Dict[str, Any]
     ) -> Any:
-        if is_admin(event.chat.id):
+        if await is_admin(event.chat.id,
+                          data['session']):
             return await handler(event, data)
         await event.answer(
             "Доступ только для администратора",
@@ -77,7 +79,8 @@ class IsGuestMessageMiddleware(BaseMiddleware):
             event: Message,
             data: Dict[str, Any]
     ) -> Any:
-        if is_guest(event.chat.id):
+        if await is_guest(event.chat.id,
+                          data['session']):
             return await handler(event, data)
         await event.answer(
             "Доступ только для гостей",
@@ -93,7 +96,8 @@ class IsGuestCallbackMiddleware(BaseMiddleware):
             event: CallbackQuery,
             data: Dict[str, Any]
     ) -> Any:
-        if is_guest(event.chat.id):
+        if await is_guest(event.chat.id,
+                          data['session']):
             return await handler(event, data)
         await event.answer(
             "Доступ только для гостей",
