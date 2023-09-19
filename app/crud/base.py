@@ -1,6 +1,6 @@
 from typing import Optional
 
-from sqlalchemy import select
+from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.user import User
@@ -86,3 +86,11 @@ class CRUDBase:
             select(self.model).where(attr == attr_value)
         )
         return db_obj.scalars().first()
+
+
+    async def count(
+            self,
+            session: AsyncSession
+    ):
+        result = await session.execute(func.count(self.model.id))
+        return result.scalars().first()

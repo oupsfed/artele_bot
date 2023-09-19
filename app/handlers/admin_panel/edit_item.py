@@ -85,7 +85,6 @@ async def callbacks_edit_food_confirm(
                                       data['col']: data['name']
                                   },
                                   session)
-    print(item)
     # food_data = await food_info(food_id)
     # builder = await food_builder(
     #     message.from_user.id,
@@ -109,13 +108,13 @@ async def callbacks_delete_food(
         text='Удалить',
         callback_data=ItemCallbackFactory(
             action=item_action.remove,
-            food_id=callback_data.id)
+            id=callback_data.id)
     )
     builder.button(
         text='Отмена',
         callback_data=ItemCallbackFactory(
             action=item_action.get,
-            food_id=callback_data.id)
+            id=callback_data.id)
     )
     await callback.message.edit_reply_markup(
         reply_markup=builder.as_markup()
@@ -125,9 +124,13 @@ async def callbacks_delete_food(
 @router.callback_query(ItemCallbackFactory.filter(F.action == item_action.remove))
 async def callbacks_delete_food(
         callback: types.CallbackQuery,
-        callback_data: ItemCallbackFactory
+        callback_data: ItemCallbackFactory,
+        session: AsyncSession
 ):
-    # delete_api_answer(f'food/{callback_data.food_id}')
+    item = await item_crud.get(callback_data.id,
+                               session)
+    await item_crud.remove(item,
+                           session)
     await callback.message.answer(
         'Товар успешно удален')
     await callback.message.delete()

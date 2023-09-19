@@ -12,7 +12,7 @@ class ArteleCallbackData(CallbackData, prefix='artele'):
     """
     action: str
     id: Optional[int]
-    page: int = 1
+    offset: int = 0
 
 
 class ItemCallbackFactory(ArteleCallbackData, prefix='item'):

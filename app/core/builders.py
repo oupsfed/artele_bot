@@ -1,27 +1,32 @@
 from app.core import factories
+from app.utils import PAGE_LIMIT
+
+CALLBACK_DATA = {
+    'item': factories.ItemCallbackFactory,
+}
 
 
-async def paginate_builder(json_response: dict,
+async def paginate_builder(offset,
+                           count,
                            builder,
-                           callback_factory,
                            action):
+    data = action.split('-')
     page_buttons = 0
-    page = json_response['page']
-    if json_response['previous']:
+    if offset >= PAGE_LIMIT:
         builder.button(
             text="⬅️",
-            callback_data=callback_factory(
+            callback_data=CALLBACK_DATA[data[0]](
                 action=action,
-                page=page - 1
+                offset=offset - PAGE_LIMIT
             )
         )
         page_buttons += 1
-    if json_response['next']:
+    if offset + PAGE_LIMIT < count:
         builder.button(
             text="➡️",
-            callback_data=callback_factory(
+            callback_data=CALLBACK_DATA[data[0]](
                 action=action,
-                page=page + 1
+                offset=offset + PAGE_LIMIT
             )
         )
         page_buttons += 1
@@ -31,11 +36,8 @@ async def paginate_builder(json_response: dict,
 async def back_builder(builder,
                        action,
                        item_id: int = None):
-    callback_data = {
-        'food': factories.FoodCallbackFactory,
-    }
     data = action.split('-')
-    callback = callback_data[data[0]](
+    callback = CALLBACK_DATA[data[0]](
         action=action
     )
     if item_id:

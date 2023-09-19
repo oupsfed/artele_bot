@@ -2,9 +2,11 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.actions import item_action
+from app.core.builders import paginate_builder, back_builder
 from app.core.factories import ItemCallbackFactory
 from app.crud.cart import cart_crud
 from app.crud.item import item_crud
+from app.utils import PAGE_LIMIT
 
 ITEM_COL = {
     'name': 'название',
@@ -15,50 +17,55 @@ ITEM_COL = {
 }
 
 
-# async def item_list_builder(item_data: dict,
-#                             offset: int = 0,
-#                             admin: bool = False) -> InlineKeyboardBuilder:
-#     """
-#     Функция формирования кнопок для меню товаров.
-#
-#             Parameters:
-#                     json_response (dict) : словарь ответа API товаров
-#                     pagination (bool) : включена ли пагинация в проекте
-#                     admin (bool): подключать ли функции администратора
-#
-#             Returns:
-#                     builder (InlineKeyboardBuilder): объект кнопок
-#     """
-#     builder = InlineKeyboardBuilder()
-#     rows = []
-#     for item in item_data:
-#         btn_text = f"{item['name']} - {item['price']} ₽"
-#         builder.button(
-#             text=btn_text,
-#             callback_data=FoodCallbackFactory(
-#                 action=food_action.get,
-#                 page=page,
-#                 id=item['id'])
-#         )
-#         rows.append(1)
-#     page_buttons, builder = await paginate_builder(
-#         json_response,
-#         builder,
-#         FoodCallbackFactory,
-#         food_action.get_all
-#     )
-#     if page_buttons > 0:
-#         rows.append(page_buttons)
-#     if admin:
-#         builder.button(
-#             text="Добавить товар",
-#             callback_data=FoodCallbackFactory(
-#                 action=food_action.create_preview,
-#                 page=page)
-#         )
-#         rows.append(1)
-#     builder.adjust(*rows)
-#     return builder
+async def item_list_builder(session: AsyncSession,
+                            offset: int = 0,
+                            admin: bool = False) -> InlineKeyboardBuilder:
+    """
+    Функция формирования кнопок для меню товаров.
+
+            Parameters:
+                    session (AsyncSession) : сессия работы с БД
+                    offset (int) = 0 : количетсво пропущенных записей
+                    admin (bool): подключать ли функции администратора
+
+            Returns:
+                    builder (InlineKeyboardBuilder): объект кнопок
+    """
+    items_data = await item_crud.get_multi_limit(session=session,
+                                                 limit=PAGE_LIMIT,
+                                                 offset=offset)
+    builder = InlineKeyboardBuilder()
+    rows = []
+    for item in items_data:
+        btn_text = f"{item.name} - {item.price} ₽"
+        builder.button(
+            text=btn_text,
+            callback_data=ItemCallbackFactory(
+                action=item_action.get,
+                page=1,
+                id=item.id)
+        )
+        rows.append(1)
+    count = await item_crud.count(session=session)
+    page_buttons, builder = await paginate_builder(
+        offset=offset,
+        count=count,
+        builder=builder,
+        action=item_action.get_all
+    )
+    if page_buttons > 0:
+        rows.append(page_buttons)
+    if admin:
+        builder.button(
+            text='Добавить товар',
+            callback_data=ItemCallbackFactory(
+                action=item_action.create_preview,
+            )
+        )
+        rows.append(1)
+
+    builder.adjust(*rows)
+    return builder
 
 
 # async def food_info(food: dict) -> dict:
@@ -140,11 +147,7 @@ async def item_get_builder(item_id: int,
         )
     )
     rows.append(2)
-    # builder = await back_builder(
-    #     builder,
-    #     item_action.get_all,
-    # )
-    rows.append(1)
+
     if admin:
         builder.button(
             text='Редактировать товар',
@@ -162,6 +165,11 @@ async def item_get_builder(item_id: int,
             )
         )
         rows.append(1)
+    builder = await back_builder(
+        builder,
+        item_action.get_all,
+    )
+    rows.append(1)
     builder.adjust(*rows)
     return builder
 

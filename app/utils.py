@@ -9,3 +9,5 @@ load_dotenv()
 token = os.getenv('TOKEN')
 
 bot = Bot(token=token, parse_mode='HTML')
+
+PAGE_LIMIT = 4

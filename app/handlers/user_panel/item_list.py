@@ -1,9 +1,6 @@
-import base64
-
 from aiogram import Router, types, F
 from aiogram.filters import Text
-from aiogram.types import InputFile, FSInputFile
-from aiogram.utils.keyboard import InlineKeyboardBuilder
+from aiogram.types import FSInputFile
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.actions import item_action
@@ -11,7 +8,7 @@ from app.core.factories import ItemCallbackFactory
 from app.crud.item import item_crud
 from app.middlewares.role import is_admin
 from app.service.cart import add_to_cart, remove_from_cart
-from app.service.item import item_get_builder
+from app.service.item import item_get_builder, item_list_builder
 
 router = Router()
 
@@ -21,31 +18,29 @@ MAIN_MESSAGE = 'Меню:'
 @router.message(Text('Меню'))
 async def item_list(message: types.Message,
                     session: AsyncSession):
-    items_data = await item_crud.get_multi_limit(session=session)
-    builder = InlineKeyboardBuilder()
-    rows = []
-    for item in items_data:
-        btn_text = f"{item.name} - {item.price} ₽"
-        builder.button(
-            text=btn_text,
-            callback_data=ItemCallbackFactory(
-                action=item_action.get,
-                page=1,
-                id=item.id)
-        )
-        rows.append(1)
-    if await is_admin(message.from_user.id,
-                      session):
-        builder.button(
-            text='Добавить товар',
-            callback_data=ItemCallbackFactory(
-                action=item_action.create_preview,
-            )
-        )
-        rows.append(1)
-    builder.adjust(*rows)
+    admin = await is_admin(message.from_user.id,
+                           session)
+    builder = await item_list_builder(session,
+                                      offset=0,
+                                      admin=admin)
     await message.answer(
         MAIN_MESSAGE,
+        reply_markup=builder.as_markup()
+    )
+
+
+@router.callback_query(ItemCallbackFactory.filter(F.action == item_action.get_all))
+async def callback_item_list(
+        callback: types.CallbackQuery,
+        callback_data: ItemCallbackFactory,
+        session: AsyncSession
+):
+    admin = await is_admin(callback.from_user.id,
+                           session)
+    builder = await item_list_builder(session,
+                                      offset=callback_data.offset,
+                                      admin=admin)
+    await callback.message.edit_reply_markup(
         reply_markup=builder.as_markup()
     )
 
