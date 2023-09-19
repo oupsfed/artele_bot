@@ -8,7 +8,7 @@ from app.core.factories import ItemCallbackFactory
 from app.crud.item import item_crud
 from app.middlewares.role import is_admin
 from app.service.cart import add_to_cart, remove_from_cart
-from app.service.item import item_get_builder, item_list_builder
+from app.service.item import item_get_builder, item_list_builder, item_info
 
 router = Router()
 
@@ -40,9 +40,16 @@ async def callback_item_list(
     builder = await item_list_builder(session,
                                       offset=callback_data.offset,
                                       admin=admin)
-    await callback.message.edit_reply_markup(
-        reply_markup=builder.as_markup()
-    )
+    if callback.message.photo:
+        await callback.message.delete()
+        await callback.message.answer(
+            MAIN_MESSAGE,
+            reply_markup=builder.as_markup()
+        )
+    else:
+        await callback.message.edit_reply_markup(
+            reply_markup=builder.as_markup()
+        )
 
 
 @router.callback_query(ItemCallbackFactory.filter(F.action == item_action.get))
@@ -53,16 +60,9 @@ async def item_get(
 ):
     admin = await is_admin(callback.from_user.id,
                            session)
-    item_data = await item_crud.get(callback_data.id,
-                                    session=session)
-    image_data = FSInputFile('static/no_image.png')
-    if item_data.image:
-        image_data = FSInputFile(f'media/{item_data.image}')
-    message_text = (f"<b>{item_data.name}</b> \n"
-                    f"{item_data.description} \n"
-                    f"Вес: {item_data.weight} г. \n"
-                    f"Цена: {item_data.price} ₽")
-    builder = await item_get_builder(item_data.id,
+    message_text, image_data = await item_info(callback_data.id,
+                                               session)
+    builder = await item_get_builder(callback_data.id,
                                      callback.from_user.id,
                                      session,
                                      admin=admin)

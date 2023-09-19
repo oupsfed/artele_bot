@@ -2,11 +2,11 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.crud.base import CRUDBase
-from app.models.item import Item
+from app.models.order import Order
 
 
-class CRUDItem(CRUDBase):
+class CRUDOrder(CRUDBase):
     pass
 
 
-item_crud = CRUDItem(Item)
+order_crud = CRUDOrder(Order)

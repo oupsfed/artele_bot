@@ -3,6 +3,7 @@ from app.utils import PAGE_LIMIT
 
 CALLBACK_DATA = {
     'item': factories.ItemCallbackFactory,
+    'cart': factories.CartCallbackFactory
 }
 
 

@@ -1,18 +1,57 @@
-from sqlalchemy import select, and_
+from sqlalchemy import select, and_, func
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from app.crud.base import CRUDBase
 from app.models.cart import Cart
+from app.models.item import Item
+from app.utils import PAGE_LIMIT
 
 
 class CRUDCART(CRUDBase):
-    async def get_multi_limit(
+
+    async def get_user_cart(
             self,
+            user_id: int,
+            session: AsyncSession,
+            offset: int = 0,
+            limit: int = PAGE_LIMIT
+    ):
+        db_obj = await session.execute(
+            select(Cart)
+            .filter(Cart.user_id == user_id)
+            .options(selectinload(Cart.item))
+            .limit(limit)
+            .offset(offset)
+        )
+        return db_obj.scalars().all()
+
+    async def count_user_cart(
+            self,
+            user_id: int,
             session: AsyncSession,
     ):
-        result = await session.execute(select(Cart))
+        db_obj = await session.execute(
+            select(Cart.id).filter(Cart.user_id == user_id)
+        )
+        return len(db_obj.scalars().all())
 
-        return result.scalars().all()
+    async def sum_user_cart(
+            self,
+            user_id: int,
+            session: AsyncSession,
+    ):
+        db_obj = await session.execute(
+            select(func.sum(
+                Cart.amount
+                * select(
+                    Item.price
+                ).where(Item.id == Cart.item_id).scalar_subquery())
+                   .filter(Cart.user_id == user_id)
+                   )
+        )
+
+        return db_obj.scalars().first()
 
     async def get_direct_cart(
             self,

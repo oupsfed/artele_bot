@@ -1,3 +1,4 @@
+from aiogram.types import FSInputFile
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -68,27 +69,28 @@ async def item_list_builder(session: AsyncSession,
     return builder
 
 
-# async def food_info(food: dict) -> dict:
-#     """
-#     Функция формирования текста сообщения определенного товара.
-#
-#             Parameters:
-#                     food (dict) : словарь товара
-#
-#             Returns:
-#                     data (dict): словарь содержащий текст и изображение товара
-#     """
-#     text = (f"<b>{food['name']}</b> \n"
-#             f"{food['description']} \n"
-#             f"Вес: {food['weight']} г. \n"
-#             f"Цена: {food['price']} ₽")
-#     food_image = URLInputFile('https://agentura-soft.ru/images/noImage.png')
-#     if food['image']:
-#         food_image = URLInputFile(food['image'])
-#     return {
-#         'text': text,
-#         'image': food_image
-#     }
+async def item_info(item_id: int,
+                    session: AsyncSession) -> dict:
+    """
+    Функция формирования текста сообщения определенного товара.
+
+            Parameters:
+                    item_id (dict) : словарь товара
+                    session (AsyncSession) : сессия работы с БД
+
+            Returns:
+                    data (dict): словарь содержащий текст и изображение товара
+    """
+    item_data = await item_crud.get(item_id,
+                                    session=session)
+    image_data = FSInputFile('static/no_image.png')
+    if item_data.image:
+        image_data = FSInputFile(f'media/{item_data.image}')
+    message_text = (f"<b>{item_data.name}</b> \n"
+                    f"{item_data.description} \n"
+                    f"Вес: {item_data.weight} г. \n"
+                    f"Цена: {item_data.price} ₽")
+    return message_text, image_data
 
 
 async def item_get_builder(item_id: int,
@@ -115,13 +117,6 @@ async def item_get_builder(item_id: int,
                                            session=session)
     if cart:
         amount = cart.amount
-    # food_price = food['price']
-    # if 'results' in cart:
-    #     cart = cart['results']
-    #     if len(cart) > 0:
-    #         cart = cart[0]
-    # if 'amount' in cart:
-    #     amount = cart['amount']
     builder = InlineKeyboardBuilder()
     rows = []
     builder.button(
@@ -147,7 +142,6 @@ async def item_get_builder(item_id: int,
         )
     )
     rows.append(2)
-
     if admin:
         builder.button(
             text='Редактировать товар',
@@ -180,7 +174,7 @@ async def edit_item_preview_builder(item_id: int,
     Функция формирования кнопок для редактирования товара.
 
             Parameters:
-                    food_id (int) : id объекта Food
+                    item_id (int) : id объекта Item
                     page (int) : страница для возврата к меню
 
             Returns:

@@ -56,6 +56,7 @@ class CRUDBase:
             for column in row.__table__.columns:
                 d[column.name] = str(getattr(row, column.name))
             return d
+
         obj_data = row_to_dict(db_obj)
         print(obj_data)
         for field in obj_data:
@@ -87,10 +88,19 @@ class CRUDBase:
         )
         return db_obj.scalars().first()
 
-
     async def count(
             self,
             session: AsyncSession
     ):
         result = await session.execute(func.count(self.model.id))
         return result.scalars().first()
+
+    async def get_multi_limit(
+            self,
+            limit: int,
+            offset: int,
+            session: AsyncSession,
+    ):
+        result = await session.execute(select(self.model).limit(limit).offset(offset))
+
+        return result.scalars().all()

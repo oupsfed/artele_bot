@@ -1,4 +1,5 @@
 from sqlalchemy import Column, String, Integer, Text
+from sqlalchemy.orm import Relationship
 
 from app.core.db import Base
 
